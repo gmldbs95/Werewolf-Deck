@@ -1,0 +1,101 @@
+{% load static %}
+<div class="row">
+    <div class="col-md-4">
+        <img style="width: 200px; margin-left: -25px;" src="{% static 'img/ribbon.png' %}" alt="dope ribbon wow amazing victory">
+    </div>
+    <div class="col-md-8 mt-5">
+        <div class="row">
+            <h4>Congrats,</h4>
+        </div>
+        <div class="row">
+            <h1>{{game.winning_team}}</h1>
+        </div>
+    </div>
+</div>
+<div class="row mt-2 border-top pt-3">
+    <div class="col-md-6">
+        <h5>Game Characters:</h5>
+        <ul>
+            <li>Simple Villagers: {{num_villagers}}</li>
+            <li>Werewolves: {{num_ww}}</li>
+            {% if game.has_village_idiot == True %}
+                <li>Village Idiot</li>
+            {% endif %}
+            {% if game.has_cupid == True %}
+                <li>Cupid</li>
+            {% endif %}
+            {% if game.has_twins == True %}
+                <li>Twins</li>
+            {% endif %}
+            {% if game.has_accursed_one == True %}
+                <li>Accursed One</li>
+            {% endif %}
+            {% if game.has_seer == True %}
+                <li>Seer</li>
+            {% endif %}
+            {% if game.has_witch == True %}
+                <li>Witch</li>
+            {% endif %}
+            {% if game.has_defender == True %}
+                <li>Defender</li>
+            {% endif %}
+            {% if game.has_hunter == True %}
+                <li>Hunter</li>
+            {% endif %}
+            {% if game.has_wild_child == True %}
+                <li>Wild Child</li>
+            {% endif %}
+            {% if game.has_little_child == True %}
+                <li>Little Child</li>
+            {% endif %}
+            {% if game.has_rusty_knight == True %}
+                <li>Knight with the Rusty Sword</li>
+            {% endif %}
+            {% if game.has_elder == True %}
+                <li>Elder</li>
+            {% endif %}
+            {% if game.has_angel == True %}
+                <li>Angel</li>
+            {% endif %}
+            {% if game.has_gypsy == True %}
+                <li>Gypsy</li>
+            {% endif %}     
+        </ul>
+    </div>
+    <div class="col-md-6">
+        <h5>Game Info:</h5>
+        <ul>
+            <li>Host: {{game.host.username}}</li>
+            <li>Duration: {{duration}}</li>
+            <li>Total Turns: {{game.current_turn}}</li>
+            <li>Played On: {{game.created_at}}</li>
+        </ul>
+    </div>
+</div>
+<div class="row border-top pt-3">
+    <div class="col-md-12 text-center">
+        <h4>Game Stats:</h4>
+    </div>
+    <div class="row mt-2">
+        <div class="col-md-7" style="width: 350px;">
+            <div class="row">
+                <h6 class="col-md-12 text-center">Team Members alive per turn phase</h6>
+            </div>
+            <div id="postGameGraphDiv"></div>
+        </div>
+        <div class="col-md-5">
+            <p class="text-center">Average Deaths/Turn:</p>
+            <h5 class="text-center">{{avgDeathsPerTurn}}</h5>    
+            <p class="text-center">Average Player Lifespan:</p>
+            <h5 class="text-center">{{avgLifeSpan}} Turns</h5>
+            <p class="text-center">This game's deaths/turn were greater than:</p>
+            <h5 class="text-center"><span class="text-success">{{avgDeathPercentile}}%</span> of all games</h5>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="gameIDInput" value="{{game.id}}">
+<script>
+    console.log("script loading");
+    var gameID = $('#gameIDInput').val();
+    $('#postGameGraphDiv').load('/home/game/' + gameID + '/postGameGraph');
+</script>

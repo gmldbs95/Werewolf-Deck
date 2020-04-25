@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    {% load static %}
+    <script src="{% static 'js/loadHeader.js' %}?{% now 'U' %}"></script>
+    <title>Werewolf</title>
+    <style>
+        #hostGameButton:hover{
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="header"></div>
+        <div class="row mb-3">
+            <div class="card-group col-md-12" style="height: 350px;">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <h3>Leaderboard</h3>
+                    </div>
+                    <div class="card-body pl-0 pr-0 pt-0 pb-0">
+                        <table class="table table-striped text-center">
+                            <thead>
+                                <tr>
+                                    <th scope="col" style="padding: 5px;">User</th>
+                                    <th scope="col" style="padding: 5px;">Games Won</th>
+                                    <th scope="col" style="padding: 5px;">Winrate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in top5 %}
+                                    <tr>
+                                        <td>
+                                            <a href="/home/users/{{entry.topUser.id}}">{{entry.topUser.username}}</a>
+                                        </td>
+                                        <td>
+                                            {{entry.topUser.games_won.all|length}}
+                                        </td>
+                                        <td>
+                                            {{entry.winrate}} %
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card overflow-hidden">
+                    <div class="card-header text-center">
+                        <h3>Team Winrate Trends</h3>
+                    </div>
+                    <div class="card-body overflow-hidden pl-0 pr-0 pb-0 pt-0">
+                        <div class="row" style="margin-top: 150px; margin-bottom: -190px;">
+                            <div class="col-md-12 text-center">
+                                <p>Graph Loading...</p>
+                            </div>
+                        </div>
+                        <div class="row overflow-hidden pl-1 pr-1 pb-1 pt-1" style="height: 278px;">
+                            <div class="col-md-12">
+                                <div id="mainIndexGraphDiv"></div>
+                            </div>
+                        </div>
+                        <div class="row" style="margin-top: -280px;">
+                            <div class="col-md-12 text-center">
+                                <p><span style="color: blue;">Villagers</span> <span style="color:red; margin-left: 20px;">Werewolves</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header text-center">
+                        <h3>Personal Stats</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>User: {{user.username}}</p>
+                        <p>Total Wins: {{userStats.totalWins}} ({{userStats.totalWinrate}}%)</p>
+                        <p>Werewolf Wins: {{userStats.wwWins}} ({{userStats.wwWinrate}}%)</p>
+                        <p>Villager Wins: {{userStats.vilWins}} ({{userStats.vilWinrate}}%)</p>
+                        <p>Average Lifespan: {{userStats.avgLifeSpan}}</p>
+                        <p>Last game played: {{user.games_joined.last.updated_at}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if messages %}
+        <div class="row">
+            <div class="col-md-12 text-center">
+                {% for message in messages %}
+                    <p>{{message}}</p>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        <div class="row mt-4">
+            <div class="card-group col-md-12">
+                <div class="card btn btn-primary col-md-4" style="transform: rotate(0);" id="hostGameButton"> <!--Transform identifies the place where stretched-link stops-->
+                    <div class="card-body justify-content-center d-flex align-items-center">
+                        <a href="/home/host" class="stretched-link h1 text-success text-decoration-none">Host A Game</a>
+                    </div>
+                </div>
+                <div class="card col-md-8 pl-0 pr-0">
+                    <div class="card-header text-center">
+                        <h5 class="col-md-12">Existing Games</h5>
+                    </div>
+                    <div class="card-body overflow-auto" style="height: 250px;">
+                        <ul>
+                            {% for game in games %}
+                                {% if game.ended == False %}
+                                    <li {% if game.started == True %} class="text-success mb-1 h4 font-weight-normal"{% else %} class="mb-1 h4 font-weight-normal" {% endif %}>
+                                        <div class="row border-bottom">
+                                            <div class="col-md-6">
+                                                ID: {{game.id}} - Host: {{game.host.username}}
+                                            </div>
+                                            <div class="col-md-6 mb-1">
+                                                <a href="/home/game/{{game.id}}/join" {% if game.started == False or user in game.players.all %} class="btn btn-sm btn-primary" {% else %} class="btn btn-sm btn-outline-secondary disabled" {% endif %} >Join</a>
+                                                <a href="/home/game/{{game.id}}" {% if game.allow_spectators == True %} class="btn btn-sm btn-info" {% else %} class="btn btn-sm btn-outline-secondary disabled" {% endif %}>Spectate</a>
+                                                <a href="/home/game/{{game.id}}/delete" {% if game.host.id == user.id %} class="btn btn-sm btn-danger" {% else %} class="btn btn-sm btn-outline-secondary disabled" {% endif %} >Delete</a> <!--For debugging etc-->
+                                            </div>
+                                        </div>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="row mt-3">
+                <div class="col-md-6 card pr-0" style="height: 300px;">
+                    <div class="card-header row">
+                        <h4 class="col-md-12 text-center">All Users</h4>
+                    </div>
+                    <div class="card-body overflow-auto text-center">
+                        <div class="row mt-2">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Nickname</th>
+                                        <th scope="col">Full Name</th>
+                                        <th scope="col">Games Played</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users %}
+                                        <tr>
+                                            <td><a href="/home/users/{{user.id}}">{{user.username}}</a></td>
+                                            <td>{{user.first_name}} {{user.last_name}}</td>
+                                            <td>{{user.games_joined.all|length}}</td>
+                                        </tr>    
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 card pr-0 pl-0" style="height: 300px;">
+                    <div class="card-header">
+                        <h4 class="col-md-12 text-center">Past Games</h4>
+                    </div>
+                    <div class="card-body pl-4 overflow-auto text-center">
+                        <div class="row ml-1 mt-2">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">ID</th>
+                                        <th scope="col">Host</th>
+                                        <th scope="col">Winning Team</th>
+                                        <th scope="col">End Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for game in games reversed %}
+                                        {% if game.ended == True %}
+                                            <tr>
+                                                <td><a href="/home/game/{{game.id}}">{{game.id}}</a></td>
+                                                <td>{{game.host.username}}</td>
+                                                {% if game.winning_team == "Werewolves Win!" %}
+                                                    <td>Werewolves</td>
+                                                {% elif game.winning_team == "Villagers Win!" %}
+                                                    <td>Villagers</td>
+                                                {% elif game.winning_team == "Angel wins it for the Villagers!" %}
+                                                    <td>Angel</td>
+                                                {% else %}
+                                                    <td>Error</td>
+                                                {% endif %}
+                                                <td>{{game.updated_at}}</td>
+                                            </tr>    
+                                        {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

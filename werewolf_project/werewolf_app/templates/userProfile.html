@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    {% load static %}
+    <script src="{% static 'js/loadHeader.js' %}?{% now 'U' %}"></script>
+    <title>{{profileUser.username}}'s Profile</title>
+</head>
+<body>
+    <input type="hidden" id="profileUserID" value="{{profileUser.id}}">
+    <div class="container">
+        <div id="header"></div>
+        <div class="row pt-1 pb-1">
+            <div class="col-md-2">
+                <img style="width:150px;" src="{% static 'img/userImg.png' %}" alt="generic user image">
+            </div>
+            <div class="col-md-6 d-flex align-items-center justify-content-center">
+                <div class="row mr-5">
+                    <h1 {% if profileUser.username|length >= 12 %} class="display-4 mr-5" {% elif profileUser.username|length >= 7 %} class="display-3 mr-5" {% else %} class="display-1 mr-5" {% endif %} style="font-family: sans-serif">{{profileUser.username}}</h1>
+                </div>
+            </div>
+            <div class="col-md-4 d-flex align-items-center">
+                <div class="col-md-12">
+                    <div class="row">
+                        <p>Name: {{profileUser.first_name}} {{profileUser.last_name}}</p>
+                    </div>
+                    <div class="row">
+                        <p>Date Joined: {{profileUser.created_at}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-2 pt-1 pb-1">
+            <div class="col-md-6 card">
+                <div class="card-header row">
+                    <h3 class="col-md-12 text-center">Personal Winrate Over Time</h3>
+                </div>
+                <div class="card-body overflow-hidden" style="height: 300px;">
+                    <div id="profileGraphDiv" style="margin-top: -10px;"></div>
+                </div>
+            </div>
+            <div class="col-md-6 card">
+                <div class="card-header row">
+                    <h3 class="col-md-12 text-center">Statistics</h3>
+                </div>
+                <div class="card-body">
+                    <p class="h4 mb-3">Total Wins: {{playerStats.totalWins}} ({{playerStats.totalWinrate}}%)</p>
+                    <p class="h4 mb-3">Werewolf Wins: {{playerStats.wwWins}} ({{playerStats.wwWinrate}}%)</p class="h4">
+                    <p class="h4 mb-3">Villager Wins: {{playerStats.vilWins}} ({{playerStats.vilWinrate}}%)</p class="h4">
+                    <p class="h4 mb-3">Average Lifespan: {{playerStats.avgLifeSpan}} Turns</p class="h4">
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-6 card pr-0" style="height: 300px;">
+                <div class="card-header row">
+                    <h4 class="col-md-12 text-center">Games Hosted</h4>
+                </div>
+                <div class="card-body overflow-auto">
+                    <div class="row border-bottom">
+                        <h6 class="col-md-12 text-center">In Progress</h6>
+                        {% for game in profileUser.games_joined.all %}
+                            {% if game.host == profileUser and game.ended == False %}
+                                <p class="col-md-12 text-center"><a href="/home/game/{{game.id}}">ID {{game.id}} | Created at {{game.created_at}}</a></p class="col-md-12 text-center">
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div class="row mt-2">
+                        <h6 class="col-md-12 text-center">Previous</h6>
+                        {% for game in profileUser.games_joined.all %}
+                            {% if game.host == profileUser and game.ended == True %}
+                                <p class="col-md-12 text-center"><a href="/home/game/{{game.id}}">ID {{game.id}} | Finished at {{game.updated_at}}</a></p class="col-md-12 text-center">
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 card pr-0 pl-0" style="height: 300px;">
+                <div class="card-header">
+                    <h4 class="col-md-12 text-center">Games Joined</h4>
+                </div>
+                <div class="card-body pl-4 overflow-auto text-center">
+                    <div class="row border-bottom ml-1">
+                        <h6 class="col-md-12 text-center">In Progress</h6>
+                        {% for game in profileUser.games_joined.all %}
+                            {% if game.host != profileUser and game.ended == False %}
+                                <p class="col-md-12 text-center"><a href="/home/game/{{game.id}}">ID {{game.id}} | hosted by {{game.host.username}} | Created at {{game.created_at}}</a></p class="col-md-12 text-center">
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div class="row ml-1 mt-2">
+                        <h6 class="col-md-12 text-center">Previous</h6>
+                        {% for game in profileUser.games_joined.all %}
+                            {% if game.host != profileUser and game.ended == True %}
+                                <p class="col-md-12 text-center"><a href="/home/game/{{game.id}}">ID {{game.id}}, hosted by {{game.host.username}} | Finished at {{game.updated_at}}</a></p>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
